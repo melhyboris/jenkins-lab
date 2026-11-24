@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-hcl
+  namespace: {{ namespace }}
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: hello-hcl
+  template:
+    metadata:
+      labels:
+        app: hello-hcl
+    spec:
+      containers:
+        - name: web
+          image: hello-hcl:{{ image_tag }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: hello-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-hcl
+  namespace: {{ namespace }}
+spec:
+  selector:
+    app: hello-hcl
+  ports:
+    - port: 80
+      targetPort: 80

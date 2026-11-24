@@ -1,0 +1,23 @@
+- name: Deploy hello-hcl to the kind cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    namespace: hcl-lab
+    replicas: 2
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  tasks:
+    - name: Render the manifest for this build
+      ansible.builtin.template:
+        src: templates/app.yaml.j2
+        dest: "{{ playbook_dir }}/rendered-app.yaml"
+
+    - name: Apply it
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/rendered-app.yaml
+      register: apply_out
+      changed_when: "'configured' in apply_out.stdout or 'created' in apply_out.stdout"
+
+    - name: Wait for the rollout
+      ansible.builtin.command: kubectl -n {{ namespace }} rollout status deployment/hello-hcl --timeout=90s
+      changed_when: false

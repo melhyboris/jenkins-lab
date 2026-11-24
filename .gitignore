@@ -1,0 +1,5 @@
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/tfplan
+terraform/plan.txt
+ansible/rendered-app.yaml
